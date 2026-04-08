@@ -119,33 +119,8 @@ function submit() {
                         </div>
                     </div>
 
-                    <div class="mt-4 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <InputLabel value="Login Profiles" />
-                            <button type="button" @click="addProfile" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
-                                <PlusIcon class="h-3.5 w-3.5" /> Add
-                            </button>
-                        </div>
-                        <p v-if="!form.login_profiles.length" class="text-xs text-slate-400">No login profiles configured.</p>
-                        <div v-for="(profile, idx) in form.login_profiles" :key="idx" class="flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-200 p-3">
-                            <div class="grid grid-cols-2 gap-2 flex-1">
-                                <input v-model="profile.key" placeholder="Key (e.g. admin)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <input v-model="profile.label" placeholder="Label (e.g. App Admin)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <input v-model="profile.user" placeholder="Username (e.g. root)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <select v-model="profile.guard" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="web">web</option>
-                                    <option value="system">system</option>
-                                </select>
-                            </div>
-                            <button type="button" @click="removeProfile(idx)" class="rounded p-1 text-slate-400 hover:text-red-600 transition-colors mt-1">
-                                <TrashIcon class="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Instances list -->
-                <div v-if="instances.length" class="border-t border-slate-200 pt-5">
+                    <!-- Instances list -->
+                    <div v-if="instances.length" class="mt-4">
                     <h2 class="text-base font-semibold text-slate-800 mb-3">Instances</h2>
                     <div class="space-y-2">
                         <div
@@ -171,6 +146,31 @@ function submit() {
                                     {{ profile.label }}
                                 </a>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Login profiles -->
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <InputLabel value="Login Profiles" />
+                            <button type="button" @click="addProfile" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                <PlusIcon class="h-3.5 w-3.5" /> Add
+                            </button>
+                        </div>
+                        <p v-if="!form.login_profiles.length" class="text-xs text-slate-400">No login profiles configured.</p>
+                        <div v-for="(profile, idx) in form.login_profiles" :key="idx" class="flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-200 p-3">
+                            <div class="grid grid-cols-2 gap-2 flex-1">
+                                <input v-model="profile.key" placeholder="Key (e.g. admin)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                <input v-model="profile.label" placeholder="Label (e.g. App Admin)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                <input v-model="profile.user" placeholder="Username (e.g. root)" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                <select v-model="profile.guard" class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="web">web</option>
+                                    <option value="system">system</option>
+                                </select>
+                            </div>
+                            <button type="button" @click="removeProfile(idx)" class="rounded p-1 text-slate-400 hover:text-red-600 transition-colors mt-1">
+                                <TrashIcon class="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
