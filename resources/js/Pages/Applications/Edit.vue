@@ -7,7 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import EnvironmentBadge from '@/Components/EnvironmentBadge.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { PlusIcon, TrashIcon, ClipboardDocumentIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
+import { PlusIcon, TrashIcon, ClipboardDocumentIcon, ArrowPathIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 
 const props = defineProps({
@@ -148,18 +148,30 @@ function submit() {
                 <div v-if="instances.length" class="border-t border-slate-200 pt-5">
                     <h2 class="text-base font-semibold text-slate-800 mb-3">Instances</h2>
                     <div class="space-y-2">
-                        <Link
+                        <div
                             v-for="inst in instances"
                             :key="inst.id"
-                            :href="route('instances.edit', inst.id)"
-                            class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                            class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-2.5"
                         >
-                            <div class="flex items-center gap-3">
+                            <Link :href="route('instances.edit', inst.id)" class="flex items-center gap-3 hover:opacity-70 transition-opacity">
                                 <EnvironmentBadge :environment="inst.environment" />
                                 <span class="text-sm text-slate-700">{{ inst.name }}</span>
+                                <span class="font-mono text-xs text-slate-400">{{ inst.url || inst.path }}</span>
+                            </Link>
+                            <div v-if="application.has_secret && application.login_profiles?.length" class="flex items-center gap-1.5" @click.stop>
+                                <a
+                                    v-for="profile in application.login_profiles"
+                                    :key="profile.key"
+                                    :href="route('instances.login', [inst.id, profile.key])"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                >
+                                    <ArrowRightEndOnRectangleIcon class="h-3 w-3" />
+                                    {{ profile.label }}
+                                </a>
                             </div>
-                            <span class="font-mono text-xs text-slate-400">{{ inst.path }}</span>
-                        </Link>
+                        </div>
                     </div>
                 </div>
 
