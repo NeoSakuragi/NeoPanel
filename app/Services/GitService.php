@@ -15,8 +15,8 @@ class GitService
         $run = fn (string $cmd) => Process::path($path)->run($cmd);
 
         $branch = trim($run('git rev-parse --abbrev-ref HEAD')->output());
-        $log = $run('git log -1 --format=%h||%H||%s||%ai||%an');
-        $logParts = explode('||', trim($log->output()));
+        $log = $run("git log -1 --format='%h||%H||%s||%ai||%an'");
+        $logParts = explode('||', trim(trim($log->output()), "'"));
 
         $dirty = trim($run('git status --porcelain')->output()) !== '';
 

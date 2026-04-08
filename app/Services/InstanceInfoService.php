@@ -21,7 +21,7 @@ class InstanceInfoService
             'instance' => $instance->toArray(),
             'git' => $this->git->getInfo($instance->path),
             'env' => $this->env->read($instance->path, $envKeys),
-            'health' => $instance->url ? $this->health->check($instance->url) : null,
+            'health' => $instance->url ? $this->health->check($instance->url, $instance->is_self) : null,
         ];
     }
 
