@@ -121,30 +121,31 @@ function submit() {
 
                     <!-- Instances list -->
                     <div v-if="instances.length" class="mt-4">
-                    <h2 class="text-base font-semibold text-slate-800 mb-3">Instances</h2>
-                    <div class="space-y-2">
-                        <div
-                            v-for="inst in instances"
-                            :key="inst.id"
-                            class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-2.5"
-                        >
-                            <Link :href="route('instances.edit', inst.id)" class="flex items-center gap-3 hover:opacity-70 transition-opacity">
-                                <EnvironmentBadge :environment="inst.environment" />
-                                <span class="text-sm text-slate-700">{{ inst.name }}</span>
-                                <span class="font-mono text-xs text-slate-400">{{ inst.url || inst.path }}</span>
-                            </Link>
-                            <div v-if="application.has_secret && application.login_profiles?.length" class="flex items-center gap-1.5" @click.stop>
-                                <a
-                                    v-for="profile in application.login_profiles"
-                                    :key="profile.key"
-                                    :href="route('instances.login', [inst.id, profile.key])"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
-                                >
-                                    <ArrowRightEndOnRectangleIcon class="h-3 w-3" />
-                                    {{ profile.label }}
-                                </a>
+                        <h2 class="text-base font-semibold text-slate-800 mb-3">Instances</h2>
+                        <div class="space-y-2">
+                            <div
+                                v-for="inst in instances"
+                                :key="inst.id"
+                                class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-2.5"
+                            >
+                                <Link :href="route('instances.edit', inst.id)" class="flex items-center gap-3 hover:opacity-70 transition-opacity">
+                                    <EnvironmentBadge :environment="inst.environment" />
+                                    <span class="text-sm text-slate-700">{{ inst.name }}</span>
+                                    <span class="font-mono text-xs text-slate-400">{{ inst.url || inst.path }}</span>
+                                </Link>
+                                <div v-if="application.has_secret && application.login_profiles?.length" class="flex items-center gap-1.5" @click.stop>
+                                    <a
+                                        v-for="profile in application.login_profiles"
+                                        :key="profile.key"
+                                        :href="route('instances.login', [inst.id, profile.key])"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                    >
+                                        <ArrowRightEndOnRectangleIcon class="h-3 w-3" />
+                                        {{ profile.label }}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
