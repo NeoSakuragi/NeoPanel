@@ -37,6 +37,11 @@ class DeployService
         return $result->successful() ? trim($result->output()) : null;
     }
 
+    private function wrapCommand(string $cmd): string
+    {
+        return "env -i HOME=\$HOME PATH=\$PATH USER=\$USER SHELL=\$SHELL bash -c " . escapeshellarg($cmd);
+    }
+
     public function execute(Deployment $deployment): void
     {
         $instance = $deployment->instance;
@@ -68,7 +73,7 @@ class DeployService
 
             $result = Process::path($instance->path)
                 ->timeout(300)
-                ->run($cmd);
+                ->run($this->wrapCommand($cmd));
 
             $stepOutput = trim($result->output() . "\n" . $result->errorOutput());
             if ($stepOutput) {
