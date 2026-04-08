@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 
 const props = defineProps({
     items: { type: Array, default: () => [] },
@@ -45,7 +45,9 @@ function onClickOutside(e) {
 onMounted(() => document.addEventListener('click', onClickOutside));
 onUnmounted(() => document.removeEventListener('click', onClickOutside));
 
-defineExpose({ open, close });
+const activeRowId = computed(() => currentRow.value?.id ?? null);
+
+defineExpose({ open, close, activeRowId });
 </script>
 
 <template>

@@ -93,7 +93,12 @@ function executeDelete() {
                         <tr
                             v-for="inst in instances"
                             :key="inst.id"
-                            class="hover:bg-slate-50 transition-colors cursor-pointer select-none"
+                            :class="[
+                                'transition-colors cursor-pointer select-none',
+                                contextMenu?.activeRowId === inst.id
+                                    ? 'bg-blue-50'
+                                    : 'hover:bg-slate-50',
+                            ]"
                             @click="onRowClick(inst)"
                             @contextmenu="onContextMenu($event, inst)"
                             @touchstart.passive="onTouchStart($event, inst)"
