@@ -4,8 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+import { Head, useForm, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     instance: { type: Object, required: true },
@@ -32,12 +31,7 @@ function submit() {
 
     <AuthenticatedLayout>
         <div class="max-w-2xl space-y-6">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-slate-800">Edit {{ instance.name }}</h1>
-                <Link :href="route('instances.index')" class="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Back">
-                    <ArrowLeftIcon class="h-5 w-5" />
-                </Link>
-            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Edit {{ instance.name }}</h1>
 
             <form @submit.prevent="submit" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
                 <div>
@@ -103,10 +97,18 @@ function submit() {
                     <InputLabel for="is_active" value="Active" class="!mb-0" />
                 </div>
 
-                <div class="pt-2">
+                <div class="flex items-center gap-3 pt-2">
                     <PrimaryButton :disabled="form.processing">
                         Save Changes
                     </PrimaryButton>
+                    <button
+                        type="button"
+                        :disabled="form.processing"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                        @click="router.visit(route('instances.index'))"
+                    >
+                        Close
+                    </button>
                 </div>
             </form>
         </div>
