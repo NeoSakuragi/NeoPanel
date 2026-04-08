@@ -26,7 +26,7 @@ class DeployController extends Controller
 
         // Check for running deployment on this instance
         $running = Deployment::where('instance_id', $instance->id)
-            ->where('status', 'running')
+            ->whereIn('status', ['pending', 'running'])
             ->exists();
 
         if ($running) {
@@ -43,18 +43,22 @@ class DeployController extends Controller
             'status' => 'pending',
         ]);
 
-        // Execute synchronously (for now — could be queued later)
-        $service->execute($deployment);
+        // Run in background so the HTTP response returns immediately
+        // PHP_BINARY points to php-fpm in FPM context, use php CLI instead
+        $php = '/usr/bin/php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+        $artisan = base_path('artisan');
+        $cmd = "{$php} {$artisan} deploy:run {$deployment->id} > /dev/null 2>&1 &";
+        exec($cmd);
 
         return response()->json([
-            'deployment' => $deployment->fresh(),
+            'deployment' => $deployment,
         ]);
     }
 
     public function status(Deployment $deployment): JsonResponse
     {
         return response()->json([
-            'deployment' => $deployment,
+            'deployment' => $deployment->fresh(),
         ]);
     }
 

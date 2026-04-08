@@ -9,7 +9,8 @@ class Deployment extends Model
 {
     protected $fillable = [
         'instance_id', 'user_id', 'tag', 'previous_tag',
-        'status', 'output', 'started_at', 'finished_at',
+        'status', 'output', 'current_step', 'total_steps',
+        'started_at', 'finished_at',
     ];
 
     protected function casts(): array

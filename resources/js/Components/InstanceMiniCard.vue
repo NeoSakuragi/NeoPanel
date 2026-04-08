@@ -47,12 +47,12 @@ function relativeDate(dateStr) {
 <template>
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow">
         <!-- Header: environment + health + login -->
-        <div class="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
+        <div class="flex flex-wrap items-center gap-2 px-4 pt-4 pb-2">
             <div class="flex items-center gap-2">
                 <EnvironmentBadge :environment="inst.environment" />
                 <HealthDot :status="health?.status" :response-time="health?.response_time_ms" />
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex flex-wrap items-center gap-1 ml-auto">
                 <button
                     v-if="app?.deploy_recipe?.length"
                     @click="emit('deploy', inst)"

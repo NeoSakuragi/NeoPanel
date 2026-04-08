@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 import { RocketLaunchIcon, CheckCircleIcon, XCircleIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 
@@ -18,7 +18,10 @@ const loadingTags = ref(false);
 const deploying = ref(false);
 const deployment = ref(null);
 const confirmText = ref('');
+const elapsed = ref(0);
+const outputEl = ref(null);
 let pollTimer = null;
+let elapsedTimer = null;
 
 const isProduction = () => props.instance?.environment === 'production';
 
@@ -32,6 +35,21 @@ const filteredTags = computed(() => {
 
 const selectedTagObj = computed(() => tags.value.find(t => t.name === selectedTag.value));
 
+const progressPercent = computed(() => {
+    const dep = deployment.value;
+    if (!dep || !dep.total_steps) return 0;
+    if (dep.status === 'success') return 100;
+    if (dep.status === 'failed') return (dep.current_step / dep.total_steps) * 100;
+    // While running, show progress up to the current step
+    return (Math.max(0, dep.current_step - 0.5) / dep.total_steps) * 100;
+});
+
+const elapsedFormatted = computed(() => {
+    const s = elapsed.value;
+    if (s < 60) return `${s}s`;
+    return `${Math.floor(s / 60)}m ${s % 60}s`;
+});
+
 watch(() => props.show, async (visible) => {
     if (visible && props.instance) {
         tags.value = [];
@@ -39,11 +57,21 @@ watch(() => props.show, async (visible) => {
         search.value = '';
         deployment.value = null;
         confirmText.value = '';
+        elapsed.value = 0;
         await fetchTags();
     } else {
-        clearInterval(pollTimer);
+        stopTimers();
     }
 });
+
+onBeforeUnmount(stopTimers);
+
+function stopTimers() {
+    clearInterval(pollTimer);
+    clearInterval(elapsedTimer);
+    pollTimer = null;
+    elapsedTimer = null;
+}
 
 async function fetchTags() {
     loadingTags.value = true;
@@ -62,6 +90,7 @@ function selectTag(tagName) {
 async function startDeploy() {
     if (isProduction() && confirmText.value !== selectedTag.value) return;
     deploying.value = true;
+    elapsed.value = 0;
 
     try {
         const { data } = await axios.post(route('api.instances.deploy', props.instance.id), {
@@ -69,17 +98,23 @@ async function startDeploy() {
         });
         deployment.value = data.deployment;
 
-        if (deployment.value.status === 'running') {
-            pollTimer = setInterval(pollStatus, 1000);
-        }
+        // Start polling and elapsed timer
+        startTimers();
     } catch (e) {
         deployment.value = {
             status: 'failed',
-            output: e.response?.data?.error || 'Deployment failed.',
+            output: e.response?.data?.error || 'Deployment failed to start.',
+            current_step: 0,
+            total_steps: 0,
         };
     } finally {
         deploying.value = false;
     }
+}
+
+function startTimers() {
+    pollTimer = setInterval(pollStatus, 800);
+    elapsedTimer = setInterval(() => { elapsed.value++; }, 1000);
 }
 
 async function pollStatus() {
@@ -87,14 +122,23 @@ async function pollStatus() {
     try {
         const { data } = await axios.get(route('api.deployments.status', deployment.value.id));
         deployment.value = data.deployment;
-        if (data.deployment.status !== 'running') {
-            clearInterval(pollTimer);
+        scrollOutput();
+        if (!['pending', 'running'].includes(data.deployment.status)) {
+            stopTimers();
         }
     } catch { /* silent */ }
 }
 
+function scrollOutput() {
+    nextTick(() => {
+        if (outputEl.value) {
+            outputEl.value.scrollTop = outputEl.value.scrollHeight;
+        }
+    });
+}
+
 function close() {
-    clearInterval(pollTimer);
+    stopTimers();
     emit('close');
 }
 </script>
@@ -110,7 +154,7 @@ function close() {
             leave-to-class="opacity-0"
         >
             <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="close">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-slate-200">
                         <h3 class="text-lg font-semibold text-slate-900">
@@ -124,7 +168,47 @@ function close() {
                                 ]"
                             >({{ instance?.environment }})</span>
                         </h3>
-                        <p v-if="currentTag" class="text-xs text-slate-500 mt-0.5">Currently on: <span class="font-mono font-medium">{{ currentTag }}</span></p>
+                        <p v-if="currentTag && !deployment" class="text-xs text-slate-500 mt-0.5">Currently on: <span class="font-mono font-medium">{{ currentTag }}</span></p>
+
+                        <!-- Progress bar (during deployment) -->
+                        <div v-if="deployment && ['pending', 'running'].includes(deployment.status)" class="mt-3 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-blue-700 font-medium">
+                                    Step {{ deployment.current_step || '...' }} of {{ deployment.total_steps || '...' }}
+                                </span>
+                                <span class="text-slate-400 tabular-nums">{{ elapsedFormatted }}</span>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    class="h-full rounded-full transition-all duration-500 ease-out"
+                                    :class="deployment.status === 'running' ? 'bg-blue-500' : 'bg-slate-300'"
+                                    :style="{ width: progressPercent + '%' }"
+                                >
+                                    <div v-if="deployment.status === 'running'" class="h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final status bar -->
+                        <div v-else-if="deployment" class="mt-3">
+                            <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-1.5">
+                                    <CheckCircleIcon v-if="deployment.status === 'success'" class="h-4 w-4 text-green-600" />
+                                    <XCircleIcon v-else-if="deployment.status === 'failed'" class="h-4 w-4 text-red-600" />
+                                    <span :class="deployment.status === 'success' ? 'text-green-700 font-medium' : 'text-red-700 font-medium'">
+                                        {{ deployment.status === 'success' ? 'Deployed successfully' : `Failed at step ${deployment.current_step}` }}
+                                    </span>
+                                </div>
+                                <span class="text-slate-400 tabular-nums">{{ elapsedFormatted }}</span>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+                                <div
+                                    class="h-full rounded-full transition-all duration-300"
+                                    :class="deployment.status === 'success' ? 'bg-green-500' : 'bg-red-500'"
+                                    :style="{ width: progressPercent + '%' }"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Body -->
@@ -190,22 +274,12 @@ function close() {
                             </template>
                         </template>
 
-                        <!-- Deployment output -->
+                        <!-- Deployment output (live log) -->
                         <template v-else>
-                            <div class="flex items-center gap-2 mb-2">
-                                <CheckCircleIcon v-if="deployment.status === 'success'" class="h-5 w-5 text-green-600" />
-                                <XCircleIcon v-else-if="deployment.status === 'failed'" class="h-5 w-5 text-red-600" />
-                                <div v-else class="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                <span :class="[
-                                    'text-sm font-medium',
-                                    deployment.status === 'success' ? 'text-green-700' :
-                                    deployment.status === 'failed' ? 'text-red-700' : 'text-blue-700',
-                                ]">
-                                    {{ deployment.status === 'success' ? 'Deployment successful' :
-                                       deployment.status === 'failed' ? 'Deployment failed' : 'Deploying...' }}
-                                </span>
-                            </div>
-                            <pre class="bg-slate-900 text-slate-100 text-xs font-mono rounded-lg p-4 overflow-auto max-h-64 whitespace-pre-wrap">{{ deployment.output || 'Starting...' }}</pre>
+                            <pre
+                                ref="outputEl"
+                                class="bg-slate-900 text-slate-100 text-xs font-mono rounded-lg p-4 overflow-auto max-h-72 whitespace-pre-wrap scroll-smooth"
+                            >{{ deployment.output || 'Waiting for deployment to start...' }}<span v-if="['pending','running'].includes(deployment.status)" class="inline-block w-1.5 h-3.5 bg-blue-400 ml-0.5 animate-pulse align-text-bottom" /></pre>
                         </template>
                     </div>
 

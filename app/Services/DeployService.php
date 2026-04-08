@@ -39,7 +39,12 @@ class DeployService
 
     private function wrapCommand(string $cmd): string
     {
-        return "env -i HOME=\$HOME PATH=\$PATH USER=\$USER SHELL=\$SHELL bash -c " . escapeshellarg($cmd);
+        return "env -i HOME=\$HOME PATH=\$PATH USER=\$USER SHELL=\$SHELL NO_COLOR=1 bash -c " . escapeshellarg($cmd);
+    }
+
+    private function stripAnsi(string $text): string
+    {
+        return preg_replace('/\x1B\[[0-9;]*[A-Za-z]|\x1B\].*?\x07|\x0D/', '', $text);
     }
 
     public function execute(Deployment $deployment): void
@@ -57,31 +62,39 @@ class DeployService
             return;
         }
 
+        $totalSteps = count($recipe);
+
         $deployment->update([
             'status' => 'running',
             'started_at' => now(),
             'output' => '',
+            'current_step' => 0,
+            'total_steps' => $totalSteps,
         ]);
 
         $output = '';
 
-        foreach ($recipe as $step) {
+        foreach ($recipe as $index => $step) {
+            $stepNum = $index + 1;
             $cmd = str_replace('{{tag}}', $deployment->tag, $step);
 
-            $output .= "$ {$cmd}\n";
-            $deployment->update(['output' => $output]);
+            $output .= "── Step {$stepNum}/{$totalSteps} ──\n\$ {$cmd}\n";
+            $deployment->update([
+                'output' => $output,
+                'current_step' => $stepNum,
+            ]);
 
             $result = Process::path($instance->path)
                 ->timeout(300)
                 ->run($this->wrapCommand($cmd));
 
-            $stepOutput = trim($result->output() . "\n" . $result->errorOutput());
+            $stepOutput = $this->stripAnsi(trim($result->output() . "\n" . $result->errorOutput()));
             if ($stepOutput) {
                 $output .= $stepOutput . "\n";
             }
 
             if (!$result->successful()) {
-                $output .= "\n✗ Failed (exit code {$result->exitCode()})\n";
+                $output .= "\n✗ Step {$stepNum} failed (exit code {$result->exitCode()})\n";
                 $deployment->update([
                     'status' => 'failed',
                     'output' => $output,
@@ -90,14 +103,15 @@ class DeployService
                 return;
             }
 
-            $output .= "✓ Done\n\n";
+            $output .= "✓ Step {$stepNum} complete\n\n";
             $deployment->update(['output' => $output]);
         }
 
-        $output .= "Deployment complete.\n";
+        $output .= "✓ Deployment complete.\n";
         $deployment->update([
             'status' => 'success',
             'output' => $output,
+            'current_step' => $totalSteps,
             'finished_at' => now(),
         ]);
     }
