@@ -18,7 +18,9 @@ class InstanceInfoService
         $envKeys = $instance->env_keys;
 
         return [
-            'instance' => $instance->toArray(),
+            'instance' => array_merge($instance->toArray(), [
+                'has_auth' => $instance->hasAuth(),
+            ]),
             'git' => $this->git->getInfo($instance->path),
             'env' => $this->env->read($instance->path, $envKeys),
             'health' => $instance->url ? $this->health->check($instance->url, $instance->is_self) : null,

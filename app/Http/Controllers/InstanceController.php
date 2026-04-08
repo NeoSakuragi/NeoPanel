@@ -49,7 +49,9 @@ class InstanceController extends Controller
     public function edit(Instance $instance): Response
     {
         return Inertia::render('Instances/Edit', [
-            'instance' => $instance,
+            'instance' => array_merge($instance->toArray(), [
+                'has_secret' => (bool) $instance->auth_secret,
+            ]),
         ]);
     }
 
@@ -64,10 +66,32 @@ class InstanceController extends Controller
             'environment' => 'required|in:production,staging,dev,custom',
             'sort_order' => 'integer|min:0',
             'is_active' => 'boolean',
+            'auth_secret' => 'nullable|string|max:500',
+            'login_profiles' => 'nullable|array',
+            'login_profiles.*.key' => 'required|string|max:50',
+            'login_profiles.*.label' => 'required|string|max:100',
+            'login_profiles.*.user' => 'required|string|max:100',
+            'login_profiles.*.guard' => 'required|string|max:50',
         ]);
 
         if (!is_dir($validated['path'])) {
             return back()->withErrors(['path' => 'Directory does not exist on disk.']);
+        }
+
+        // Don't overwrite secret if not provided (keep existing)
+        if (empty($validated['auth_secret'])) {
+            unset($validated['auth_secret']);
+        }
+
+        // Clean empty login profiles
+        if (isset($validated['login_profiles'])) {
+            $validated['login_profiles'] = array_values(array_filter(
+                $validated['login_profiles'],
+                fn ($p) => !empty($p['key']) && !empty($p['user']),
+            ));
+            if (empty($validated['login_profiles'])) {
+                $validated['login_profiles'] = null;
+            }
         }
 
         $instance->update($validated);

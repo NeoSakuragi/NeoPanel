@@ -9,7 +9,10 @@ class Instance extends Model
     protected $fillable = [
         'name', 'path', 'url', 'github_repo', 'description',
         'environment', 'sort_order', 'is_active', 'is_self', 'env_keys',
+        'auth_secret', 'login_profiles',
     ];
+
+    protected $hidden = ['auth_secret'];
 
     protected function casts(): array
     {
@@ -18,7 +21,14 @@ class Instance extends Model
             'is_self' => 'boolean',
             'sort_order' => 'integer',
             'env_keys' => 'array',
+            'auth_secret' => 'encrypted',
+            'login_profiles' => 'array',
         ];
+    }
+
+    public function hasAuth(): bool
+    {
+        return $this->auth_secret && $this->login_profiles;
     }
 
     public function scopeActive($query)
