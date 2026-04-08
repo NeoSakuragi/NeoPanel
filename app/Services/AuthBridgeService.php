@@ -8,11 +8,14 @@ class AuthBridgeService
 {
     public function generateLoginUrl(Instance $instance, string $profileKey): ?string
     {
-        if (!$instance->auth_secret || !$instance->login_profiles) {
+        $secret = $instance->getEffectiveAuthSecret();
+        $profiles = $instance->getEffectiveLoginProfiles();
+
+        if (!$secret || !$profiles) {
             return null;
         }
 
-        $profile = collect($instance->login_profiles)->firstWhere('key', $profileKey);
+        $profile = collect($profiles)->firstWhere('key', $profileKey);
         if (!$profile) {
             return null;
         }
@@ -23,7 +26,7 @@ class AuthBridgeService
             'expires' => time() + 60,
         ];
 
-        $signature = hash_hmac('sha256', json_encode($payload), $instance->auth_secret);
+        $signature = hash_hmac('sha256', json_encode($payload), $secret);
 
         $query = http_build_query(array_merge($payload, ['signature' => $signature]));
 

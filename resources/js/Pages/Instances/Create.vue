@@ -6,11 +6,15 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 
+const props = defineProps({
+    applications: { type: Array, default: () => [] },
+});
+
 const form = useForm({
+    application_id: '',
     name: '',
     path: '',
     url: '',
-    github_repo: '',
     description: '',
     environment: 'production',
     sort_order: 0,
@@ -31,6 +35,15 @@ function submit() {
 
             <form @submit.prevent="submit" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
                 <div>
+                    <InputLabel for="application_id" value="Application" />
+                    <select id="application_id" v-model="form.application_id" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        <option value="">None</option>
+                        <option v-for="app in applications" :key="app.id" :value="app.id">{{ app.name }}</option>
+                    </select>
+                    <InputError :message="form.errors.application_id" class="mt-1" />
+                </div>
+
+                <div>
                     <InputLabel for="name" value="Name" />
                     <TextInput id="name" v-model="form.name" class="mt-1 block w-full" required />
                     <InputError :message="form.errors.name" class="mt-1" />
@@ -48,12 +61,6 @@ function submit() {
                     <TextInput id="url" v-model="form.url" type="url" class="mt-1 block w-full" placeholder="https://myapp.example.com" />
                     <InputError :message="form.errors.url" class="mt-1" />
                     <p class="text-xs text-slate-400 mt-1">Used for health checks. Leave empty if not publicly accessible.</p>
-                </div>
-
-                <div>
-                    <InputLabel for="github_repo" value="GitHub Repository" />
-                    <TextInput id="github_repo" v-model="form.github_repo" class="mt-1 block w-full" placeholder="owner/repo" />
-                    <InputError :message="form.errors.github_repo" class="mt-1" />
                 </div>
 
                 <div>

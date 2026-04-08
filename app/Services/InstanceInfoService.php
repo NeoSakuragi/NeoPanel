@@ -20,6 +20,7 @@ class InstanceInfoService
         return [
             'instance' => array_merge($instance->toArray(), [
                 'has_auth' => $instance->hasAuth(),
+                'effective_login_profiles' => $instance->getEffectiveLoginProfiles(),
             ]),
             'git' => $this->git->getInfo($instance->path),
             'env' => $this->env->read($instance->path, $envKeys),

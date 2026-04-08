@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Application;
 use App\Models\Instance;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -19,15 +20,25 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        $panelApp = Application::firstOrCreate(
+            ['name' => 'NeoPanel'],
+            [
+                'github_repo' => 'NeoSakuragi/NeoPanel',
+                'description' => 'Instance management dashboard',
+                'sort_order' => 999,
+                'is_active' => true,
+            ],
+        );
+
         Instance::firstOrCreate(
             ['is_self' => true],
             [
+                'application_id' => $panelApp->id,
                 'name' => 'NeoPanel',
                 'path' => base_path(),
                 'url' => config('app.url'),
-                'description' => 'This dashboard',
                 'environment' => 'dev',
-                'sort_order' => 999,
+                'sort_order' => 0,
                 'is_active' => true,
             ],
         );

@@ -108,7 +108,7 @@ function executeDelete() {
                     <thead class="bg-slate-50">
                         <tr>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Name</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Path</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Application</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Environment</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</th>
                         </tr>
@@ -136,7 +136,10 @@ function executeDelete() {
                                 </div>
                                 <p v-if="inst.url" class="text-xs text-slate-400 mt-0.5">{{ inst.url }}</p>
                             </td>
-                            <td class="px-5 py-3 font-mono text-xs text-slate-600">{{ inst.path }}</td>
+                            <td class="px-5 py-3">
+                                <span v-if="inst.application" class="text-sm text-slate-700">{{ inst.application.name }}</span>
+                                <span v-else class="text-xs text-slate-400">-</span>
+                            </td>
                             <td class="px-5 py-3">
                                 <EnvironmentBadge :environment="inst.environment" />
                             </td>

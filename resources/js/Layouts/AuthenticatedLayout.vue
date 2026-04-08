@@ -6,6 +6,7 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import {
     Squares2X2Icon,
+    CubeIcon,
     ServerStackIcon,
     Cog6ToothIcon,
     Bars3Icon,
@@ -17,6 +18,7 @@ const mobileOpen = ref(false);
 
 const navItems = [
     { label: 'Dashboard', route: 'dashboard', icon: Squares2X2Icon, pattern: 'dashboard' },
+    { label: 'Applications', route: 'applications.index', icon: CubeIcon, pattern: 'applications.*' },
     { label: 'Instances', route: 'instances.index', icon: ServerStackIcon, pattern: 'instances.*' },
     { label: 'Settings', route: 'settings.edit', icon: Cog6ToothIcon, pattern: 'settings.*' },
 ];

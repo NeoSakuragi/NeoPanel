@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\InstanceStatusController;
+use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthBridgeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstanceController;
@@ -13,6 +14,7 @@ Route::get('/', fn () => redirect()->route('login'));
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+    Route::resource('applications', ApplicationController::class)->except(['show']);
     Route::resource('instances', InstanceController::class)->except(['show']);
     Route::get('instances/{instance}/login/{profile}', [AuthBridgeController::class, 'login'])->name('instances.login');
     Route::post('api/generate-secret', [AuthBridgeController::class, 'generateSecret'])->name('api.generate-secret');
