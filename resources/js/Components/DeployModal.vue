@@ -115,7 +115,14 @@ function close() {
                     <div class="px-6 py-4 border-b border-slate-200">
                         <h3 class="text-lg font-semibold text-slate-900">
                             Deploy to {{ instance?.name }}
-                            <span class="text-sm font-normal text-slate-500">({{ instance?.environment }})</span>
+                            <span
+                                :class="[
+                                    'text-sm',
+                                    isProduction()
+                                        ? 'font-bold text-red-600'
+                                        : 'font-normal text-slate-500',
+                                ]"
+                            >({{ instance?.environment }})</span>
                         </h3>
                         <p v-if="currentTag" class="text-xs text-slate-500 mt-0.5">Currently on: <span class="font-mono font-medium">{{ currentTag }}</span></p>
                     </div>
