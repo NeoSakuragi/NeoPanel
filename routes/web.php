@@ -5,6 +5,7 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthBridgeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeployController;
+use App\Http\Controllers\DeploymentHistoryController;
 use App\Http\Controllers\InstanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
@@ -25,6 +26,9 @@ Route::middleware('auth')->group(function () {
     Route::post('api/instances/{instance}/deploy', [DeployController::class, 'deploy'])->name('api.instances.deploy');
     Route::get('api/deployments/{deployment}/status', [DeployController::class, 'status'])->name('api.deployments.status');
     Route::get('api/instances/{instance}/deployments', [DeployController::class, 'history'])->name('api.instances.deployments');
+
+    Route::get('/deployments', [DeploymentHistoryController::class, 'index'])->name('deployments.index');
+    Route::get('/deployments/{deployment}', [DeploymentHistoryController::class, 'show'])->name('deployments.show');
 
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');

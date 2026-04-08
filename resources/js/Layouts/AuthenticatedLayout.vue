@@ -8,6 +8,7 @@ import {
     Squares2X2Icon,
     CubeIcon,
     ServerStackIcon,
+    ClockIcon,
     Cog6ToothIcon,
     Bars3Icon,
     XMarkIcon,
@@ -20,6 +21,7 @@ const navItems = [
     { label: 'Dashboard', route: 'dashboard', icon: Squares2X2Icon, pattern: 'dashboard' },
     { label: 'Applications', route: 'applications.index', icon: CubeIcon, pattern: 'applications.*' },
     { label: 'Instances', route: 'instances.index', icon: ServerStackIcon, pattern: 'instances.*' },
+    { label: 'Deployments', route: 'deployments.index', icon: ClockIcon, pattern: 'deployments.*' },
     { label: 'Settings', route: 'settings.edit', icon: Cog6ToothIcon, pattern: 'settings.*' },
 ];
 
