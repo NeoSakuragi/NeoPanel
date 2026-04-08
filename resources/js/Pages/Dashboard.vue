@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InstanceMiniCard from '@/Components/InstanceMiniCard.vue';
 import InstanceCard from '@/Components/InstanceCard.vue';
+import DeployModal from '@/Components/DeployModal.vue';
 import { Head } from '@inertiajs/vue3';
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline';
 import { ref, onMounted, onUnmounted } from 'vue';
@@ -44,6 +45,14 @@ async function refresh() {
 
 onMounted(() => { timer = setInterval(refresh, 30000); });
 onUnmounted(() => { if (timer) clearInterval(timer); });
+
+const showDeploy = ref(false);
+const deployInstance = ref(null);
+
+function openDeploy(instance) {
+    deployInstance.value = instance;
+    showDeploy.value = true;
+}
 
 const totalInstances = computed(() => {
     let count = orphans.value.length;
@@ -106,6 +115,7 @@ import { computed } from 'vue';
                         :key="status.instance.id"
                         :data="status"
                         :app="group.application"
+                        @deploy="openDeploy"
                     />
                 </div>
             </div>
@@ -130,5 +140,10 @@ import { computed } from 'vue';
                 </a>
             </div>
         </div>
+        <DeployModal
+            :show="showDeploy"
+            :instance="deployInstance"
+            @close="showDeploy = false"
+        />
     </AuthenticatedLayout>
 </template>

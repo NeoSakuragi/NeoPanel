@@ -9,12 +9,15 @@ import {
     ExclamationTriangleIcon,
     ArrowUpIcon,
     ArrowDownIcon,
+    RocketLaunchIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     data: { type: Object, required: true },
     app: { type: Object, default: null },
 });
+
+const emit = defineEmits(['deploy']);
 
 const inst = computed(() => props.data.instance);
 const git = computed(() => props.data.git);
@@ -49,7 +52,16 @@ function relativeDate(dateStr) {
                 <EnvironmentBadge :environment="inst.environment" />
                 <HealthDot :status="health?.status" :response-time="health?.response_time_ms" />
             </div>
-            <div v-if="hasAuth && loginProfiles.length" class="flex items-center gap-1">
+            <div class="flex items-center gap-1">
+                <button
+                    v-if="app?.deploy_recipe?.length"
+                    @click="emit('deploy', inst)"
+                    class="inline-flex items-center gap-1 rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                    title="Deploy"
+                >
+                    <RocketLaunchIcon class="h-3 w-3" />
+                    Deploy
+                </button>
                 <a
                     v-for="profile in loginProfiles"
                     :key="profile.key"

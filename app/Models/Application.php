@@ -9,7 +9,7 @@ class Application extends Model
 {
     protected $fillable = [
         'name', 'github_repo', 'description', 'auth_secret',
-        'login_profiles', 'sort_order', 'is_active',
+        'login_profiles', 'deploy_recipe', 'sort_order', 'is_active',
     ];
 
     protected $hidden = ['auth_secret'];
@@ -21,6 +21,7 @@ class Application extends Model
             'sort_order' => 'integer',
             'auth_secret' => 'encrypted',
             'login_profiles' => 'array',
+            'deploy_recipe' => 'array',
         ];
     }
 

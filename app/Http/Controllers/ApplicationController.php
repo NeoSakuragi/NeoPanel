@@ -34,6 +34,8 @@ class ApplicationController extends Controller
             'login_profiles.*.label' => 'required|string|max:100',
             'login_profiles.*.user' => 'required|string|max:100',
             'login_profiles.*.guard' => 'required|string|max:50',
+            'deploy_recipe' => 'nullable|array',
+            'deploy_recipe.*' => 'required|string|max:500',
             'sort_order' => 'integer|min:0',
             'is_active' => 'boolean',
         ]);
@@ -43,6 +45,10 @@ class ApplicationController extends Controller
                 $validated['login_profiles'],
                 fn ($p) => !empty($p['key']) && !empty($p['user']),
             ));
+        }
+
+        if (isset($validated['deploy_recipe'])) {
+            $validated['deploy_recipe'] = array_values(array_filter($validated['deploy_recipe'], fn ($s) => trim($s) !== ''));
         }
 
         Application::create($validated);
@@ -73,6 +79,8 @@ class ApplicationController extends Controller
             'login_profiles.*.label' => 'required|string|max:100',
             'login_profiles.*.user' => 'required|string|max:100',
             'login_profiles.*.guard' => 'required|string|max:50',
+            'deploy_recipe' => 'nullable|array',
+            'deploy_recipe.*' => 'required|string|max:500',
             'sort_order' => 'integer|min:0',
             'is_active' => 'boolean',
         ]);
@@ -88,6 +96,13 @@ class ApplicationController extends Controller
             ));
             if (empty($validated['login_profiles'])) {
                 $validated['login_profiles'] = null;
+            }
+        }
+
+        if (isset($validated['deploy_recipe'])) {
+            $validated['deploy_recipe'] = array_values(array_filter($validated['deploy_recipe'], fn ($s) => trim($s) !== ''));
+            if (empty($validated['deploy_recipe'])) {
+                $validated['deploy_recipe'] = null;
             }
         }
 

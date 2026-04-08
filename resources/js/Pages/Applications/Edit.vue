@@ -21,6 +21,7 @@ const form = useForm({
     description: props.application.description || '',
     auth_secret: '',
     login_profiles: props.application.login_profiles || [],
+    deploy_recipe: props.application.deploy_recipe || [],
     sort_order: props.application.sort_order,
     is_active: props.application.is_active,
 });
@@ -47,6 +48,14 @@ function addProfile() {
 
 function removeProfile(idx) {
     form.login_profiles.splice(idx, 1);
+}
+
+function addStep() {
+    form.deploy_recipe.push('');
+}
+
+function removeStep(idx) {
+    form.deploy_recipe.splice(idx, 1);
 }
 
 function submit() {
@@ -90,6 +99,30 @@ function submit() {
                             <input v-model="form.is_active" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                             <span class="text-sm text-slate-700">Active</span>
                         </label>
+                    </div>
+                </div>
+
+                <!-- Deploy recipe -->
+                <div class="border-t border-slate-200 pt-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-semibold text-slate-800">Deploy Recipe</h2>
+                        <button type="button" @click="addStep" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            <PlusIcon class="h-3.5 w-3.5" /> Add Step
+                        </button>
+                    </div>
+                    <p v-if="!form.deploy_recipe.length" class="text-xs text-slate-400">No deploy steps configured. Use <code class="bg-slate-200 px-1 rounded" v-text="'{{tag}}'"></code> as a placeholder for the target tag.</p>
+                    <div class="space-y-2">
+                        <div v-for="(step, idx) in form.deploy_recipe" :key="idx" class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400 w-5 text-right flex-shrink-0">{{ idx + 1 }}</span>
+                            <input
+                                v-model="form.deploy_recipe[idx]"
+                                class="block w-full rounded-md border-slate-300 text-xs font-mono shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                :placeholder="'e.g. git checkout tags/{{tag}}'  "
+                            />
+                            <button type="button" @click="removeStep(idx)" class="rounded p-1 text-slate-400 hover:text-red-600 transition-colors">
+                                <TrashIcon class="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
