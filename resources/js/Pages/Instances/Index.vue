@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EnvironmentBadge from '@/Components/EnvironmentBadge.vue';
+import ContextMenu from '@/Components/ContextMenu.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
@@ -9,12 +10,42 @@ defineProps({
     instances: { type: Array, default: () => [] },
 });
 
+const contextMenu = ref(null);
+let longPressTimer = null;
+
+const contextMenuItems = [
+    { key: 'edit', label: 'Edit', icon: PencilSquareIcon },
+    { key: 'delete', label: 'Delete', icon: TrashIcon, color: 'red' },
+];
+
+function onRowClick(inst) {
+    router.visit(route('instances.edit', inst.id));
+}
+
+function onContextMenu(e, inst) {
+    contextMenu.value?.open(e, inst);
+}
+
+function onTouchStart(e, inst) {
+    longPressTimer = setTimeout(() => {
+        onContextMenu(e, inst);
+    }, 500);
+}
+
+function onTouchEnd() {
+    clearTimeout(longPressTimer);
+}
+
 const showDeleteConfirm = ref(false);
 const toDelete = ref(null);
 
-function confirmDelete(instance) {
-    toDelete.value = instance;
-    showDeleteConfirm.value = true;
+function handleContextAction(action, inst) {
+    if (action === 'edit') router.visit(route('instances.edit', inst.id));
+    if (action === 'delete') {
+        if (inst.is_self) return;
+        toDelete.value = inst;
+        showDeleteConfirm.value = true;
+    }
 }
 
 function executeDelete() {
@@ -56,14 +87,18 @@ function executeDelete() {
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Path</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Environment</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</th>
-                            <th class="px-5 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wide">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <tr
                             v-for="inst in instances"
                             :key="inst.id"
-                            class="hover:bg-slate-50 transition-colors"
+                            class="hover:bg-slate-50 transition-colors cursor-pointer select-none"
+                            @click="onRowClick(inst)"
+                            @contextmenu="onContextMenu($event, inst)"
+                            @touchstart.passive="onTouchStart($event, inst)"
+                            @touchend.passive="onTouchEnd"
+                            @touchmove.passive="onTouchEnd"
                         >
                             <td class="px-5 py-3">
                                 <div class="flex items-center gap-2">
@@ -86,28 +121,9 @@ function executeDelete() {
                                     {{ inst.is_active ? 'Active' : 'Inactive' }}
                                 </span>
                             </td>
-                            <td class="px-5 py-3 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <Link
-                                        :href="route('instances.edit', inst.id)"
-                                        class="rounded p-1.5 text-slate-400 hover:text-amber-600 transition-colors"
-                                        title="Edit"
-                                    >
-                                        <PencilSquareIcon class="h-4 w-4" />
-                                    </Link>
-                                    <button
-                                        v-if="!inst.is_self"
-                                        @click="confirmDelete(inst)"
-                                        class="rounded p-1.5 text-slate-400 hover:text-red-600 transition-colors"
-                                        title="Delete"
-                                    >
-                                        <TrashIcon class="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </td>
                         </tr>
                         <tr v-if="!instances.length">
-                            <td colspan="5" class="px-5 py-8 text-center text-sm text-slate-500">
+                            <td colspan="4" class="px-5 py-8 text-center text-sm text-slate-500">
                                 No instances configured.
                             </td>
                         </tr>
@@ -115,6 +131,13 @@ function executeDelete() {
                 </table>
             </div>
         </div>
+
+        <!-- Context menu -->
+        <ContextMenu
+            ref="contextMenu"
+            :items="contextMenuItems"
+            @action="handleContextAction"
+        />
 
         <!-- Delete confirm dialog -->
         <Teleport to="body">
