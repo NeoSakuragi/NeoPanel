@@ -10,15 +10,23 @@ class DeployService
 {
     public function getAvailableTags(Instance $instance): array
     {
-        $result = Process::path($instance->path)->run('git fetch origin 2>&1 && git tag -l --sort=-version:refname');
+        Process::path($instance->path)->run('git fetch origin --tags 2>&1');
+
+        $result = Process::path($instance->path)->run("git tag -l --sort=-version:refname --format='%(refname:short)||%(contents:subject)'");
 
         if (!$result->successful()) {
             return [];
         }
 
         return array_values(array_filter(
-            explode("\n", trim($result->output())),
-            fn ($line) => $line !== '',
+            array_map(function ($line) {
+                $parts = explode('||', $line, 2);
+                if (empty($parts[0])) return null;
+                return [
+                    'name' => trim($parts[0]),
+                    'message' => trim($parts[1] ?? ''),
+                ];
+            }, explode("\n", trim($result->output()))),
         ));
     }
 
