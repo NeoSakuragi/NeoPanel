@@ -5,6 +5,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const form = useForm({
     name: '',
@@ -29,8 +30,8 @@ function submit() {
         <div class="max-w-2xl space-y-6">
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-bold text-slate-800">Add Instance</h1>
-                <Link :href="route('instances.index')" class="text-sm text-slate-500 hover:text-slate-700">
-                    Back to list
+                <Link :href="route('instances.index')" class="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Back">
+                    <ArrowLeftIcon class="h-5 w-5" />
                 </Link>
             </div>
 
@@ -100,13 +101,10 @@ function submit() {
                     <InputLabel for="is_active" value="Active" class="!mb-0" />
                 </div>
 
-                <div class="flex items-center gap-3 pt-2">
+                <div class="pt-2">
                     <PrimaryButton :disabled="form.processing">
                         Add Instance
                     </PrimaryButton>
-                    <Link :href="route('instances.index')" class="text-sm text-slate-500 hover:text-slate-700">
-                        Cancel
-                    </Link>
                 </div>
             </form>
         </div>
