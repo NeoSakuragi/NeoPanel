@@ -60,12 +60,27 @@ function relativeDate(dateStr) {
             <EnvironmentBadge :environment="inst.environment" />
         </div>
 
-        <!-- Health + URL -->
+        <!-- Health + URL + Login -->
         <div class="px-5 pb-3 space-y-2">
-            <HealthDot
-                :status="health?.status"
-                :response-time="health?.response_time_ms"
-            />
+            <div class="flex items-center justify-between">
+                <HealthDot
+                    :status="health?.status"
+                    :response-time="health?.response_time_ms"
+                />
+                <div v-if="inst.has_auth && inst.login_profiles?.length" class="flex items-center gap-1.5">
+                    <a
+                        v-for="profile in inst.login_profiles"
+                        :key="profile.key"
+                        :href="route('instances.login', [inst.id, profile.key])"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                    >
+                        <ArrowRightEndOnRectangleIcon class="h-3.5 w-3.5" />
+                        {{ profile.label }}
+                    </a>
+                </div>
+            </div>
             <div v-if="inst.url" class="flex items-center gap-1.5">
                 <a
                     :href="inst.url"
@@ -144,21 +159,5 @@ function relativeDate(dateStr) {
             </div>
         </div>
 
-        <!-- Login buttons -->
-        <div v-if="inst.has_auth && inst.login_profiles?.length" class="border-t border-slate-100 px-5 py-2.5">
-            <div class="flex flex-wrap gap-2">
-                <a
-                    v-for="profile in inst.login_profiles"
-                    :key="profile.key"
-                    :href="route('instances.login', [inst.id, profile.key])"
-                    target="_blank"
-                    rel="noopener"
-                    class="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                >
-                    <ArrowRightEndOnRectangleIcon class="h-3.5 w-3.5" />
-                    {{ profile.label }}
-                </a>
-            </div>
-        </div>
     </div>
 </template>

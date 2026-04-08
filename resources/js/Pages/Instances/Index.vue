@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EnvironmentBadge from '@/Components/EnvironmentBadge.vue';
 import ContextMenu from '@/Components/ContextMenu.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/vue/24/outline';
 
 defineProps({
     instances: { type: Array, default: () => [] },
@@ -13,17 +13,36 @@ defineProps({
 const contextMenu = ref(null);
 let longPressTimer = null;
 
-const contextMenuItems = [
-    { key: 'edit', label: 'Edit', icon: PencilSquareIcon },
-    { key: 'delete', label: 'Delete', icon: TrashIcon, color: 'red' },
-];
+function getContextMenuItems(inst) {
+    const items = [];
+
+    // Login profiles
+    if (inst.login_profiles?.length) {
+        for (const profile of inst.login_profiles) {
+            items.push({
+                key: `login:${profile.key}`,
+                label: profile.label,
+                icon: ArrowRightEndOnRectangleIcon,
+                color: 'blue',
+            });
+        }
+        items.push({ key: 'divider' });
+    }
+
+    items.push({ key: 'edit', label: 'Edit', icon: PencilSquareIcon });
+    if (!inst.is_self) {
+        items.push({ key: 'delete', label: 'Delete', icon: TrashIcon, color: 'red' });
+    }
+
+    return items;
+}
 
 function onRowClick(inst) {
     router.visit(route('instances.edit', inst.id));
 }
 
 function onContextMenu(e, inst) {
-    contextMenu.value?.open(e, inst);
+    contextMenu.value?.open(e, inst, getContextMenuItems(inst));
 }
 
 function onTouchStart(e, inst) {
@@ -40,6 +59,11 @@ const showDeleteConfirm = ref(false);
 const toDelete = ref(null);
 
 function handleContextAction(action, inst) {
+    if (action.startsWith('login:')) {
+        const profileKey = action.replace('login:', '');
+        window.open(route('instances.login', [inst.id, profileKey]), '_blank');
+        return;
+    }
     if (action === 'edit') router.visit(route('instances.edit', inst.id));
     if (action === 'delete') {
         if (inst.is_self) return;
@@ -140,7 +164,6 @@ function executeDelete() {
         <!-- Context menu -->
         <ContextMenu
             ref="contextMenu"
-            :items="contextMenuItems"
             @action="handleContextAction"
         />
 

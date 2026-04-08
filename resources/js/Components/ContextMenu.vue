@@ -12,10 +12,14 @@ const x = ref(0);
 const y = ref(0);
 const menuRef = ref(null);
 const currentRow = ref(null);
+const dynamicItems = ref(null);
 
-function open(event, row) {
+const displayItems = computed(() => dynamicItems.value || props.items);
+
+function open(event, row, items = null) {
     event.preventDefault();
     currentRow.value = row;
+    dynamicItems.value = items;
     x.value = event.clientX || event.touches?.[0]?.clientX || 0;
     y.value = event.clientY || event.touches?.[0]?.clientY || 0;
     visible.value = true;
@@ -31,6 +35,7 @@ function open(event, row) {
 function close() {
     visible.value = false;
     currentRow.value = null;
+    dynamicItems.value = null;
 }
 
 function handleAction(key) {
@@ -66,20 +71,24 @@ defineExpose({ open, close, activeRowId });
                 :style="{ position: 'fixed', left: x + 'px', top: y + 'px' }"
                 class="z-50 min-w-[160px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
             >
-                <button
-                    v-for="item in items"
-                    :key="item.key"
-                    @click="handleAction(item.key)"
-                    :class="[
-                        'flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors',
-                        item.color === 'red'
-                            ? 'text-red-600 hover:bg-red-50'
-                            : 'text-slate-700 hover:bg-slate-50',
-                    ]"
-                >
-                    <component v-if="item.icon" :is="item.icon" class="h-4 w-4" />
-                    {{ item.label }}
-                </button>
+                <template v-for="(item, idx) in displayItems" :key="idx">
+                    <div v-if="item.key === 'divider'" class="my-1 border-t border-slate-100" />
+                    <button
+                        v-else
+                        @click="handleAction(item.key)"
+                        :class="[
+                            'flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors',
+                            item.color === 'red'
+                                ? 'text-red-600 hover:bg-red-50'
+                                : item.color === 'blue'
+                                    ? 'text-blue-600 hover:bg-blue-50'
+                                    : 'text-slate-700 hover:bg-slate-50',
+                        ]"
+                    >
+                        <component v-if="item.icon" :is="item.icon" class="h-4 w-4" />
+                        {{ item.label }}
+                    </button>
+                </template>
             </div>
         </Transition>
     </Teleport>
